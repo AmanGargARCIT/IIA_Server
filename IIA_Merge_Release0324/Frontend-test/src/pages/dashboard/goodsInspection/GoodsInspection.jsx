@@ -276,7 +276,10 @@ const handleGISearch = async () => {
     },
     {
         heading: "Vendor Details",
-        colCnt: 10,
+        // Modified by aman
+        colCnt: 4,
+        // conCnt:10,
+        // End
         fieldList: [
             {
                 name: "vendorId",
@@ -289,14 +292,20 @@ const handleGISearch = async () => {
                 name: "vendorName",
                 label: "Vendor Name",
                 type: "text",
-                span: 3,
+                // Modified by Aman
+                span: 2,
+                // span: 3,
+                // End
                 required: true
             },
             {
                 name: "vendorEmail",
                 label: "Vendor Email",
                 type: "text",
-                span: 3,
+                // Modified by Aman
+                span: 2,
+                // span: 3,
+                // End
                 required: true
             },
             {
@@ -364,7 +373,7 @@ const handleGISearch = async () => {
     {
         heading: "Material Details",
         name: "materialDtlList",
-        colCnt: 8,
+        colCnt: 4,
         children: [
             {
                 name: "materialCode",

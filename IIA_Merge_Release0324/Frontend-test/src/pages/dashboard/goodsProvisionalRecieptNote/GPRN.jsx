@@ -127,6 +127,13 @@ const GPRN = () => {
       const { data: vendorData } = await axios.get(`/api/vendor-master/${data?.responseData?.vendorId}`)
       const { data: indentData } = await axios.get(`/api/indents/${data?.responseData?.indentIds[0]}`)
 
+       // Resolve locationId at search time using current fsDd
+    const consigneesAddress = data?.responseData?.consignesAddress;
+    const matchedLocation = fsDd.find(
+      loc => loc.label === consigneesAddress || loc.value === consigneesAddress
+    );
+    const resolvedFieldStation = matchedLocation ? matchedLocation.value : consigneesAddress;
+
       setFormData({
         poId: data?.responseData?.poId,
         vendorId: data?.responseData?.vendorId,
@@ -137,7 +144,7 @@ const GPRN = () => {
         indentorName: indentData?.responseData?.indentorName,
         indentId: indentData?.responseData?.createdBy,
         consigneeDetail: data?.responseData?.consignesAddress,
-        fieldStation: data?.responseData?.consignesAddress,
+        fieldStation: resolvedFieldStation,
         materialDtlList: data?.responseData?.purchaseOrderAttributes?.map((mat, idx) => ({ ...mat, materialDesc: mat.materialDescription, uomId: mat.uom,warrantyTerms: data?.responseData?.warranty, orderedQuantity: mat.totalQuantity - mat.receivedQuantity,totalQuantity: mat.totalQuantity, quantityDelivered: mat.receivedQuantity || 0 , receivedQuantity:"" })),
         date: dayjs().format('DD/MM/YYYY'),
         deliveryDate: data?.responseData?.deliveryDate || "", 
@@ -187,7 +194,7 @@ const formattedPoList = rawList.map(item => ({
 
 setPendingGprnList(formattedPoList);
 
-
+      
       const formattedLocations = (locationResponse.data?.responseData || []).map(location => ({
         label: location.locationName,
         value: location.locationCode
@@ -268,7 +275,7 @@ setPendingGprnList(formattedPoList);
           name: "project",
           label: "Project",
           type: "text",
-          required: true,
+          // required: true,
           span: 2 // optional
         }
 
@@ -276,7 +283,7 @@ setPendingGprnList(formattedPoList);
     },
     {
       heading: "Vendor Details",
-      colCnt: 10,
+      colCnt: 4,
       fieldList: [
         {
           name: "vendorId",
@@ -289,14 +296,14 @@ setPendingGprnList(formattedPoList);
           name: "vendorName",
           label: "Vendor Name",
           type: "text",
-          span: 3,
+          span: 2,
           required: true
         },
         {
           name: "vendorEmail",
           label: "Vendor Email",
           type: "text",
-          span: 3,
+          span: 2,
           required: true
         },
         {
@@ -353,7 +360,7 @@ setPendingGprnList(formattedPoList);
     {
       heading: "Material Details",
       name: "materialDtlList",
-      colCnt: 8,
+      colCnt: 4,
       children: [
         {
           name: "materialCode",
@@ -385,8 +392,6 @@ setPendingGprnList(formattedPoList);
           span: 2,
           required: true,
           // Modified by aman to make dynamic
-          // options: warrantyDropdown,
-            
           options: warrantyLOV.length > 0
     ? warrantyLOV.map(lov => ({ label: lov.lovDisplayValue, value: lov.lovValue }))
     : []
@@ -402,14 +407,15 @@ setPendingGprnList(formattedPoList);
           name: "orderedQuantity",
           label: "Pending Quantity",
           type: "text",
+          span: 3,
           required: true,
           // disabled: true
         },
         {
           name: "quantityDelivered",
-          label: "Quantity Already Delivered",
+          label: "Delivered Quantity",
           type: "text",
-          span:2,
+          span:3,
           required: true,
           disabled:true,
         },
@@ -430,6 +436,7 @@ setPendingGprnList(formattedPoList);
           name: "totalAmount",
           label: "Total Amount",
           type: "text",
+          span:2,
           required: true,
           disabled: true,
         },
@@ -438,7 +445,7 @@ setPendingGprnList(formattedPoList);
           label: "Make",
           type: "text",
           span: 2,
-          required: true,
+          // required: true,
           // disabled: true
         },
         {
@@ -446,7 +453,7 @@ setPendingGprnList(formattedPoList);
           label: "Model No.",
           type: "text",
           span: 2,
-          required: true,
+          // required: true,
           // disabled: true
         },
         {
@@ -454,7 +461,7 @@ setPendingGprnList(formattedPoList);
           label: "Serial No.",
           type: "text",
           span: 2,
-          required: true,
+          // required: true,
           // disabled: true
         },
         {
@@ -476,7 +483,7 @@ setPendingGprnList(formattedPoList);
           label: "Material Photograph",
           type: "multiImage",  // changed from "image" to "multiImage"
           span: 3,
-          required: true,
+          // required: true,
           accept: "image/*",
           multiple: true  // added multiple property
         }

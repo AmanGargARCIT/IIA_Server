@@ -1905,6 +1905,10 @@ public class IndentCreationServiceImpl implements IndentCreationService {
         }
 
         BigDecimal departmentPriceLimit = priceLimitOptional.get().getPriceLimit();
+        // Added by aman
+if (departmentPriceLimit== null ){
+    return;
+}
 
         // Check each material for Computer & Peripherals category
         for (MaterialDetailsRequestDTO material : materialDetailsList) {

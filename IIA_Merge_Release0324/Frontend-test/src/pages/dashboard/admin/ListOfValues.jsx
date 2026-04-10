@@ -403,7 +403,11 @@ const ListOfValues = () => {
         <Form.Item
             label="Limit"
             name="departmentLimit"
-            rules={[{ required: true, message: 'Please enter Department limit' }]}
+            rules={[{ 
+              // Modified by aman
+              // required: true,
+              // End
+               message: 'Please enter Department limit' }]}
           >
             <Input placeholder="Department Limit" />
           </Form.Item>

@@ -33,7 +33,7 @@ const CustomIndentSearch = ({
           }}
           style={{ width: "60%" }}
         >
-          <Option value="processId">Process ID</Option>
+          <Option value="processId">ID</Option>
           <Option value="submittedDate">Submitted Date</Option>
           <Option value="materialdescription">Material Description</Option>
           <Option value="indentorname">Indentor Name</Option>

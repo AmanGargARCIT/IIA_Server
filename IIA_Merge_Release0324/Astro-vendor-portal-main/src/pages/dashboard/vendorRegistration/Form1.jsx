@@ -21,6 +21,10 @@ dayjs.extend(customParseFormat);
 const { Option } = Select;
 
 const Form1 = () => {
+  // Added by aman 
+  const [showStateField, setShowStateField] = useState(true);
+const [showCityField, setShowCityField] = useState(true);
+// End
   const auth = useSelector((state) => state.auth);
   const actionPerformer = auth.userId;
   const [form] = Form.useForm();
@@ -37,6 +41,13 @@ const Form1 = () => {
 
   const handleSubmit = async (values) => {
     setLoading(true);
+    // If state field is hidden, set state to null
+let finalState = values.state;
+if (!showStateField) finalState = null;
+
+// If city field is hidden, set city to null
+let finalCity = values.city;
+if (!showCityField) finalCity = null;
     try {
       const payload = {
         vendorName: values.vendorName,
@@ -62,8 +73,12 @@ const Form1 = () => {
         bankRoutingNumber: values.bankRoutingNumber,
         bankAddress: values.bankAddress,
         country: values.country,
-        state: values.state,
-        place: values.city,
+      //  Added by aman
+        state: finalState,
+        place: finalCity,   // note: your backend uses "place" for city
+        // state: values.state,
+        // place: values.city,
+        // End
         createdBy: actionPerformer,
         updatedBy: actionPerformer,
       };
@@ -148,6 +163,10 @@ const Form1 = () => {
 
   // Auto-select India when Domestic vendor type is selected
   useEffect(() => {
+    // Added by aman
+    setShowStateField(true);
+  setShowCityField(true);
+  // end
     if (vendorType === 'Domestic') {
       const indiaCode = 'IN';
       setSelectedCountry(indiaCode);
@@ -171,21 +190,48 @@ const Form1 = () => {
     setSelectedCountry(value);
     const states = State.getStatesOfCountry(value);
     setStateList(states);
+    // Added by aman 
+    // setCityList([]);
+    // form.setFieldsValue({ state: undefined, city: undefined });
+    if (states.length === 0) {
+    // No states for this country → hide state & city, clear values
+    setShowStateField(false);
+    setShowCityField(false);
+    setSelectedState('');
     setCityList([]);
     form.setFieldsValue({ state: undefined, city: undefined });
+  } else {
+    setShowStateField(true);
+    setShowCityField(true); // reset city visibility until state selected
+    setCityList([]);
+    form.setFieldsValue({ state: undefined, city: undefined });
+  }
+  // End
   };
 
   const handleStateChange = (value) => {
     setSelectedState(value);
     const cities = City.getCitiesOfState(selectedCountry, value);
     setCityList(cities);
+    // Added by aman
+    // form.setFieldsValue({ city: undefined });
+     if (cities.length === 0) {
+    setShowCityField(false);
     form.setFieldsValue({ city: undefined });
+  } else {
+    setShowCityField(true);
+    form.setFieldsValue({ city: undefined });
+  }
+  // End
   };
 
   // Handle vendor type change
   const handleVendorTypeChange = (value) => {
     setVendorType(value);
-    
+    // Added by aman
+    setShowStateField(true);
+  setShowCityField(true);
+  // End
     // Clear fields that are dependent on vendor type
     if (value === 'International') {
       form.setFieldsValue({
@@ -402,6 +448,7 @@ const Form1 = () => {
             <Form.Item
               label="PAN Number"
               name="panNo"
+              normalize={(value) => (value ? value.toUpperCase() : value)} 
               rules={[
                 { required: vendorType === 'Domestic', message: "PAN Number is required" },
                 { min: 10, max: 10, message: "PAN Number must be 10 characters" },
@@ -433,6 +480,7 @@ const Form1 = () => {
             <Form.Item
               label="GST Number"
               name="gstNo"
+              normalize={(value) => (value ? value.toUpperCase() : value)} 
               rules={[
                 { required: vendorType === 'Domestic', message: "GST Number is required" },
                 { pattern: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, message: "GST Number must be in valid format (e.g., 22AAAAA0000A1Z5)" }
@@ -472,6 +520,7 @@ const Form1 = () => {
                 <Form.Item
                   label="SWIFT Code"
                   name="swiftCode"
+                  normalize={(value) => (value ? value.toUpperCase() : value)}
                   rules={[
                     { required: true, message: "SWIFT Code is required" },
                     { pattern: /^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/, message: "SWIFT Code must be 8 or 11 characters (e.g., AAAABBCC or AAAABBCCXXX)" }
@@ -483,6 +532,7 @@ const Form1 = () => {
                 <Form.Item
                   label="BIC Code"
                   name="bicCode"
+                  normalize={(value) => (value ? value.toUpperCase() : value)}
                   rules={[
                     { required: true, message: "BIC Code is required" },
                     { pattern: /^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/, message: "BIC Code must be 8 or 11 characters (e.g., AAAABBCC or AAAABBCCXXX)" }
@@ -494,6 +544,7 @@ const Form1 = () => {
                 <Form.Item
                   label="IBAN/ABA Number"
                   name="ibanAbaNumber"
+                  normalize={(value) => (value ? value.toUpperCase() : value)}
                   rules={[
                     { required: true, message: "IBAN/ABA Number is required" },
                     {
@@ -559,6 +610,7 @@ const Form1 = () => {
             <Form.Item
               label="IFSC Code"
               name="ifscCode"
+              normalize={(value) => (value ? value.toUpperCase() : value)} 
               rules={[
                 { required: vendorType === 'Domestic', message: "IFSC Code is required" },
                 { pattern: /^[A-Z]{4}0[A-Z0-9]{6}$/, message: "IFSC Code must be in format: ABCD0123456 (4 uppercase letters, 0, then 6 alphanumeric)" }
@@ -603,6 +655,8 @@ const Form1 = () => {
               </Select>
             </Form.Item>
 
+{/* Added by aman */}
+{showStateField && (
             <Form.Item 
               label="State" 
               name="state" 
@@ -622,8 +676,9 @@ const Form1 = () => {
                   </Option>
                 ))}
               </Select>
-            </Form.Item>
-
+            </Form.Item>)}
+          
+                {showCityField && showStateField && (
             <Form.Item 
               label="City" 
               name="city" 
@@ -642,7 +697,7 @@ const Form1 = () => {
                   </Option>
                 ))}
               </Select>
-            </Form.Item>
+            </Form.Item>)}
           </div>
 
           <Form.Item>

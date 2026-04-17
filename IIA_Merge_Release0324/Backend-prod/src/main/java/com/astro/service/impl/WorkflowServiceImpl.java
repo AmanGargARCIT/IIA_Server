@@ -1052,6 +1052,24 @@ public class WorkflowServiceImpl implements WorkflowService {
                     AppConstant.ERROR_TYPE_VALIDATION, "Workflow transition not found.With given workflow transition id and request id."));
         }
 
+        // Recovery: if a "Change requested" return transition was saved without branchId
+        // (created before the fix), recover branchId from any sibling transition that has one.
+        // Level/seq are set to 0 so getNextApprover restarts from the first approver (RO),
+        // not from wherever the approver who sent the change request was in the chain.
+        if (workflowTransition.getBranchId() == null && workflowTransition.getTransitionId() == null) {
+            workflowTransitionRepository.findByRequestId(workflowTransition.getRequestId())
+                .stream()
+                .filter(wt -> wt.getBranchId() != null
+                        && !wt.getWorkflowTransitionId().equals(workflowTransition.getWorkflowTransitionId()))
+                .findFirst()
+                .ifPresent(sibling -> {
+                    workflowTransition.setBranchId(sibling.getBranchId());
+                    workflowTransition.setApprovalLevel(0);
+                    workflowTransition.setApprovalSequence(0);
+                    workflowTransitionRepository.save(workflowTransition);
+                });
+        }
+
         // For branch-based workflows, transitionId is null
         TransitionMaster currentTransition = null;
         if (workflowTransition.getTransitionId() != null) {
@@ -1374,6 +1392,13 @@ public class WorkflowServiceImpl implements WorkflowService {
             nextWorkflowTransition.setTransitionOrder(latestWorkflowTransition.getTransitionOrder());
             nextWorkflowTransition.setTransitionSubOrder(latestWorkflowTransition.getTransitionSubOrder());
             nextWorkflowTransition.setWorkflowName(latestWorkflowTransition.getWorkflowName());
+            // Preserve branch-based workflow fields so approveTransition can route correctly on resubmit.
+            // Use currentWorkflowTransition (the approver who sent the change request) for branchId —
+            // it always has branchId set. Set level/seq to 0 so getNextApprover restarts from the
+            // first approver in the chain (Reporting Officer) rather than skipping past them.
+            nextWorkflowTransition.setBranchId(currentWorkflowTransition.getBranchId());
+            nextWorkflowTransition.setApprovalLevel(0);
+            nextWorkflowTransition.setApprovalSequence(0);
             nextWorkflowTransition.setStatus(AppConstant.IN_PROGRESS_TYPE);
             nextWorkflowTransition.setNextAction(AppConstant.PENDING_TYPE);
             nextWorkflowTransition.setAction(transitionActionReqDto.getAction());
